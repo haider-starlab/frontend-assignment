@@ -1,6 +1,6 @@
-# FieldOps Console — Frontend Assignment
+# FieldOps Console — Frontend Intern Assignment
 
-A take-home assignment for the **Frontend Engineer (ReactJS)** role at Cloudnebula Enterprises.
+A take-home assignment for the **Frontend Engineering Intern (ReactJS)** role at Cloudnebula Enterprises.
 
 You'll build an operator console for monitoring and controlling irrigation across
 farm sites — a small slice of what our FutureOps platform does.
@@ -67,9 +67,8 @@ thing your reviewer will see, so keep it green.
     └── mock/              the fake backend — DO NOT MODIFY
 ```
 
-Everything else is yours. There's no routing, styling, state management or folder
-convention pre-decided, because those choices are a large part of what's being
-assessed.
+Everything else is yours. There's no routing, styling or state management
+pre-decided, because those choices are part of what's being assessed.
 
 ## About the dependencies
 
@@ -92,13 +91,13 @@ A PR in your own repository containing your implementation, plus:
 - **`README.md`** — replace this file with yours: how to run it, what's done,
   what isn't, known bugs. Accurate self-assessment scores well here.
 - **`DECISIONS.md`** — architecture, dependency justifications, trade-offs, what
-  you measured, what you cut. Max 1.5 pages.
+  you measured, what you cut. Max 1 page.
 
 See `ASSIGNMENT.md` §7 for the full list.
 
 ## Ground rules, short version
 
-- Timebox it. **3-4 days elapsed, ~15-20 hours of work.** A polished 90% beats a
+- Timebox it. **1–2 days elapsed, ~6–10 hours of work.** A polished 90% beats a
   broken 110%. Cut things deliberately and write down what you cut.
 - **AI assistants are allowed.** You'll be asked to explain and modify your own
   code in a follow-up call, so don't ship anything you can't defend.

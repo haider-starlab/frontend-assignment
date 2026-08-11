@@ -1,7 +1,7 @@
-# Frontend Engineering Assignment — "FieldOps Console"
+# Frontend Intern Assignment — "FieldOps Console"
 
-**Role:** Frontend Engineer (ReactJS)
-**Timebox:** 3-4 days (we expect ~10–14 hours of actual work — please do not exceed this)
+**Role:** Frontend Engineering Intern (ReactJS)
+**Timebox:** 1–2 days (we expect ~6–10 hours of actual work — please do not exceed this)
 **Submission:** Git repository (GitHub/GitLab) + short write-up
 
 ---
@@ -18,14 +18,14 @@ This is a realistic industrial-control UI problem. That means three things matte
 2. **Live data** — telemetry and alarms arrive continuously; the UI must stay responsive.
 3. **Failure is normal** — radios drop, RTUs go offline, commands time out. Your UI must handle it gracefully, not crash or silently swallow it.
 
-You do **not** need to build a backend. A mock API + event stream is specified in Section 6.
+You do **not** need to build a backend. A mock API + event stream is specified in Section 5.
 
 ---
 
 ## 2. Tech constraints
 
 **Required**
-- React 19+ with **function components and hooks**
+- React 18+ with **function components and hooks**
 - **TypeScript** (strict mode on)
 - Vite (SSR is not required or evaluated)
 - Client-side routing with deep-linkable URLs
@@ -34,8 +34,6 @@ You do **not** need to build a backend. A mock API + event stream is specified i
 **Allowed and encouraged**
 - Data-fetching / server-state library (TanStack Query, SWR, RTK Query)
 - Client-state library if you need one (Zustand, Redux Toolkit, Jotai, or plain Context + reducer)
-- Charting library (Recharts, visx, Chart.js, uPlot)
-- Form library (React Hook Form, Formik) and a schema validator (Zod, valibot, Yup)
 - A light-weight component library for primitives (Radix, shadcn/ui, MUI, Mantine)
 
 **Not allowed**
@@ -48,7 +46,7 @@ Every library choice must be justified in one line in `DECISIONS.md`. We care mu
 
 ## 3. What to build
 
-Four routes. Build all four — breadth is part of what's being tested.
+Two routes. Build both — breadth is part of what's being tested.
 
 ### 3.1 `/` — Operations Overview
 
@@ -58,61 +56,22 @@ The screen an operator leaves open on a wall monitor.
 - **Live alarm feed:** newest first, severity-coded, auto-updating from the event stream. Must be announced to screen readers politely (`aria-live`), not aggressively.
 - **"Currently irrigating" strip:** every zone in `IRRIGATING` state with its site, elapsed runtime, and live flow rate. Runtime should tick without a full-page refetch.
 - Empty states and skeleton loading states are required, not optional.
+- Clicking a site name in the irrigating strip or alarm feed should navigate to that site's detail page.
 
-### 3.2 `/sites` — Sites & Controllers
+### 3.2 `/sites/:siteId` — Site Detail (Zones only)
 
-A dense, working data table over ~40 sites and ~600 controllers.
+A single site's control surface.
 
-- Columns: name, region, acres, controller counts by type, online %, open alarms, last comms.
-- **Search** (debounced), **multi-select filters** (region, controller type, status, "has open alarms"), **sortable columns**, and **pagination or virtualized scroll** — your choice, justify it.
-- **All table state must live in the URL.** Copy-pasting the URL must reproduce the exact view, including page, sort, and filters. Browser back/forward must work.
-- Row click → site detail.
-- Must be usable on a 375px-wide screen. A horizontally scrolling desktop table on mobile is a fail; decide what an operator actually needs on a phone.
-
-### 3.3 `/sites/:siteId` — Site Detail
-
-Three tabs, tab state reflected in the URL.
-
-**Tab A — Zones (control surface)**
-- Grid or list of zones: name, crop, valve state, flow GPM, pressure PSI, soil moisture %, controlling device.
+- Display the site name and a small summary (region, acres, online controller count).
+- **Zones grid or list:** name, crop, valve state, flow GPM, pressure PSI, soil moisture %, controlling device.
 - **Start / Stop irrigation** per zone:
-  - The command endpoint is slow (1.5–3 s) and fails sometimes (see 6.3).
+  - The command endpoint is slow (1.5–3 s) and fails sometimes (see 5.3).
   - Use an **optimistic update** with a clear pending state, and **roll back with a visible error** on failure.
   - A zone whose controller is `OFFLINE` cannot be commanded — disable it and explain why in an accessible way (not just a greyed-out button).
   - Starting a zone must open a confirmation dialog that shows estimated water volume. The dialog must trap focus, close on `Esc`, and return focus to the trigger.
   - Double-clicking Start must not send two commands.
-- **Bulk action:** select multiple zones → Stop All. Report partial failure honestly ("7 of 9 stopped; 2 failed").
-
-**Tab B — Telemetry**
-- Time-series chart of flow, pressure and soil moisture for a selected zone.
-- Range selector: last 1 h / 6 h / 24 h / 7 d. Range belongs in the URL.
-- Series toggling, sensible axes and units, tooltip with formatted timestamp in the **site's timezone** (sites are in different timezones — this matters).
-- The 7-day range returns ~10,000 points. It must not lock up the main thread. Downsample, decimate, or use a canvas renderer — and say what you did and why.
-
-**Tab C — Alarms**
-- Filterable by severity and acknowledged state.
-- **Acknowledge** an alarm (single and bulk), with optimistic update.
-- New alarms arriving on the stream for this site must appear here live.
-
-### 3.4 `/sites/:siteId/programs/new` — Irrigation Program Builder
-
-A multi-step form.
-
-**Step 1 — Basics:** program name (required, 3–48 chars, unique per site), enabled toggle, mode: **by time** or **by volume**.
-
-**Step 2 — Zones:** select 1+ zones from the site. Show total area and estimated flow of the selection.
-
-**Step 3 — Schedule:**
-- Days of week (1+ required), start time, and depending on mode either duration (minutes, 1–720) or target volume (gallons, > 0).
-- Show the computed finish time (for volume mode, estimate from selected zones' nominal flow).
-- **Conflict detection:** if the resulting window overlaps an existing enabled program that shares any of the selected zones, show a specific, non-blocking warning naming the conflicting program and overlap window. The user may proceed anyway.
-
-**Step 4 — Review & submit:** full summary, submit to `POST /programs`.
-
-Also required:
-- Field-level validation on blur, step-level gating (can't advance while invalid), and a **submit that surfaces server-side field errors** (the mock endpoint rejects duplicate names with a 422 field error — handle it).
-- **Unsaved-changes guard:** navigating away mid-form prompts for confirmation.
-- Fully keyboard-navigable, with labels correctly associated and errors linked via `aria-describedby`.
+- Live updates from the event stream must update zone telemetry and valve state without a full refetch.
+- Empty states and skeleton loading states are required, not optional.
 
 ---
 
@@ -123,16 +82,16 @@ Also required:
 | **Real-time** | Consume the mock event stream. Telemetry ticks and new alarms must update the UI without a full refetch and without re-rendering unrelated subtrees. |
 | **Errors** | Every async surface has a loading, empty, and error state with a retry path. One top-level error boundary minimum. Never a blank screen. |
 | **Offline / stale** | If the stream disconnects, show a "reconnecting" indicator and mark live values as stale. Reconnect with backoff. |
-| **Performance** | No jank on the zones grid or 7-day chart. Be able to explain — with numbers or a profiler screenshot — one thing you measured and improved. |
+| **Performance** | No jank on the zones grid. Be able to explain — with numbers or a profiler screenshot — one thing you measured and improved. |
 | **Accessibility** | Keyboard operable end to end, visible focus, dialogs trap focus, colour is never the only carrier of meaning (severity, valve state), passes an axe scan with no serious violations. |
-| **Responsive** | Works at 375px, 768px and 1440px. |
-| **Testing** | 5–8 meaningful tests (React Testing Library / Vitest). We'd rather see one good test of optimistic rollback than twenty snapshot tests. At least one test must cover a failure path. |
+| **Responsive** | Works at 375px, 768px and 1440px. The zones grid must remain usable on a phone. |
+| **Testing** | 3–5 meaningful tests (React Testing Library / Vitest). We'd rather see one good test of optimistic rollback than twenty snapshot tests. At least one test must cover a failure path. |
 
 ---
 
 ## 5. Explicitly out of scope
 
-Don't spend time on: authentication, a real backend or database, a map view, i18n, dark mode, CI pipelines, Docker, e2e tests, or pixel-matching a design. None of these earn points.
+Don't spend time on: the `/sites` list table, telemetry charts, the alarms tab, the irrigation program builder, authentication, a real backend or database, a map view, i18n, dark mode, CI pipelines, Docker, e2e tests, or pixel-matching a design. None of these earn points.
 
 ---
 
@@ -181,47 +140,27 @@ interface Alarm {
   message: string;
   raisedAt: string; acknowledgedAt: string | null; acknowledgedBy: string | null;
 }
-
-interface Program {
-  id: string; siteId: string; name: string; enabled: boolean;
-  mode: 'TIME' | 'VOLUME';
-  zoneIds: string[];
-  daysOfWeek: number[];                     // 0 = Sunday
-  startTime: string;                        // 'HH:mm', site-local
-  durationMinutes?: number;                 // mode === 'TIME'
-  targetVolumeGallons?: number;             // mode === 'VOLUME'
-}
-
-interface TelemetryPoint {
-  t: string; flowGpm: number; pressurePsi: number; soilMoisturePct: number;
-}
 ```
 
-### 6.2 Endpoints
+### 6.2 Endpoints you will use
 
 ```
-GET   /sites                       ?search&region[]&type[]&status[]&hasAlarms&sort&order&page&pageSize
-GET   /sites/:id
-GET   /sites/:id/controllers
-GET   /sites/:id/zones
-GET   /sites/:id/alarms            ?severity[]&acknowledged
-GET   /sites/:id/programs
-GET   /zones/:id/telemetry          ?range=1h|6h|24h|7d
-POST  /zones/:id/command            { action: 'START' | 'STOP' }
-POST  /alarms/:id/ack
-POST  /programs                     Program (without id)
+GET   /api/summary
+GET   /api/alarms                    ?limit &severity[] &acknowledged
+GET   /api/sites/:id
+GET   /api/sites/:id/controllers
+GET   /api/sites/:id/zones
+POST  /api/zones/:id/command         { action: 'START' | 'STOP' }
 ```
 
-List endpoints return `{ data: T[], total: number, page: number, pageSize: number }`.
+`/api/sites/:id` returns a `SiteListRow` — the `Site` fields plus derived roll-ups (`controllerCounts`, `onlinePct`, `openAlarms`, `zoneCount`, `irrigatingZoneCount`, `lastCommsAt`). You don't need to compute those yourself.
 
 ### 6.3 Required mock behaviour
 
-- **Latency:** reads 200–600 ms (random). `POST /zones/:id/command` 1,500–3,000 ms.
+- **Latency:** reads 200–600 ms (random). `POST /api/zones/:id/command` 1,500–3,000 ms.
 - **Read failures:** 10% of read requests return `500`.
 - **Command failures:** 20% of commands return `409 { code: 'DEVICE_UNREACHABLE', message: ... }`. Commands to a zone on an `OFFLINE` controller always return `409`.
-- **Duplicate program name:** `POST /programs` returns `422 { errors: { name: 'A program with this name already exists' } }`.
-- **Seed volume:** 40 sites (≥ 4 distinct regions, ≥ 3 distinct timezones), 600 controllers, 900 zones, 250 alarms, 60 programs. Generate deterministically from a fixed seed so runs are reproducible.
-- **Telemetry:** 1-minute resolution. `7d` returns ~10,000 points. Values should look plausible (pressure drops when a valve opens, soil moisture rises after irrigation).
+- **Seed volume:** 40 sites (≥ 4 distinct regions, ≥ 3 distinct timezones), 600 controllers, 900 zones, 250 alarms. Generate deterministically from a fixed seed so runs are reproducible.
 - **Event stream:** a module exposing `subscribe(handler): () => void`, emitting every 2–4 s:
   - `{ type: 'TELEMETRY', zoneId, flowGpm, pressurePsi, soilMoisturePct, t }`
   - `{ type: 'ALARM_RAISED', alarm }`
@@ -237,14 +176,13 @@ You may implement the stream over `setInterval`, a `BroadcastChannel`, or a real
 
 1. **Repository** with a clean, readable commit history (not one "initial commit"). Conventional commit messages are welcome but not required.
 2. **`README.md`** — how to run it (`npm i && npm run dev` must be enough), what's done, what isn't, known bugs. Honesty here scores well; overclaiming does not.
-3. **`DECISIONS.md`** — max 1.5 pages:
+3. **`DECISIONS.md`** — max 1 page:
    - Architecture: how you organised state, and where server state ends and client state begins.
    - One-line justification per non-trivial dependency.
    - How you handled optimistic updates and rollback.
-   - How you handled the 10k-point chart.
    - What you measured for performance and what changed.
-   - What you'd do with another week, and what you knowingly cut.
-4. **Optional (strongly liked):** a 3–5 minute screen recording walking through the app and one piece of code you're proud of.
+   - What you'd do with another day, and what you knowingly cut.
+4. **Optional (strongly liked):** a 2–3 minute screen recording walking through the app and one piece of code you're proud of.
 
 ---
 
